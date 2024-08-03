@@ -1,0 +1,11 @@
+.idea
+
+*.db
+*.db-journal
+*.log
+*.pkl
+*test.py
+
+*/temp
+
+*/__pycache__/*
