@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sankey Diagram</title>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://unpkg.com/d3-array@1"></script>
+    <script src="https://unpkg.com/d3-collection@1"></script>
+    <script src="https://unpkg.com/d3-path@1"></script>
+    <script src="https://unpkg.com/d3-shape@1"></script>
+    <script src="https://unpkg.com/d3-sankey@0"></script>
+    <style>
+        .node rect {
+            fill-opacity: .9;
+            shape-rendering: crispEdges;
+        }
+
+        .node text {
+            text-shadow: 0 1px 0 #fff;
+        }
+        .wm {
+            font: 24px Arial;
+            fill: rgba(125, 143, 156, 0.62);
+            fill-opacity: 0.5;
+            filter: url(#shadow);
+        }
+    </style>
+</head>
+<body>
+<svg id="sankey" width="960" height="800">
+    <defs>
+        <filter id="shadow" x="-50%" y="-50%" width="150%" height="150%">
+            <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="black" flood-opacity="0.5" />
+        </filter>
+    </defs>
+</svg>
+<script>
+    const svg = d3.select("svg"),
+        width = +svg.attr("width"),
+        height = +svg.attr("height");
+
+    const format = d3.format(",.0f"),
+        color = d3.scaleOrdinal(d3.schemeCategory10);
+
+    const sankey = d3.sankey()
+        .nodeId(d => d.name)
+        .nodeWidth(15)
+        .nodePadding(10)
+        .extent([[1, 1], [width - 1, height - 6]])
+
+    const link = svg.append("g")
+        .attr("class", "links")
+        .attr("fill", "none")
+        .attr("stroke", "#000")
+        .attr("stroke-opacity", 0.2)
+        .selectAll("path")
+
+    const node = svg.append("g")
+        .attr("class", "nodes")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", 10)
+        .selectAll("g");
+
+    svg.append('text')
+        .attr("class", "wm")
+        .text("@kaCVanime")
+        .attr("x", 500)
+        .attr("y", 750)
+
+    // overview
+    // const graph = {'nodes': [{'name': '小学'}, {'name': '初中'}, {'name': '高中'}, {'name': '四级'}, {'name': '六级'}, {'name': '专四专八'}, {'name': 'CEFR_A1'}, {'name': 'CEFR_A2'}, {'name': 'CEFR_B1'}, {'name': 'CEFR_B2'}, {'name': 'CEFR_C1'}, {'name': 'CEFR_C2'}, {'name': 'COCA_20000'}, {'name': 'ULTRA'}], 'links': [{'source': '小学', 'target': 'CEFR_A1', 'value': 365}, {'source': '小学', 'target': 'CEFR_A2', 'value': 28}, {'source': '小学', 'target': 'CEFR_B1', 'value': 5}, {'source': '小学', 'target': 'CEFR_B2', 'value': 4}, {'source': '小学', 'target': 'CEFR_C2', 'value': 3}, {'source': '小学', 'target': 'COCA_20000', 'value': 20}, {'source': '小学', 'target': 'ULTRA', 'value': 16}, {'source': '初中', 'target': 'CEFR_A1', 'value': 412}, {'source': '初中', 'target': 'CEFR_A2', 'value': 444}, {'source': '初中', 'target': 'CEFR_B1', 'value': 193}, {'source': '初中', 'target': 'CEFR_B2', 'value': 144}, {'source': '初中', 'target': 'CEFR_C1', 'value': 59}, {'source': '初中', 'target': 'CEFR_C2', 'value': 11}, {'source': '初中', 'target': 'COCA_20000', 'value': 105}, {'source': '初中', 'target': 'ULTRA', 'value': 112}, {'source': '高中', 'target': 'CEFR_A1', 'value': 52}, {'source': '高中', 'target': 'CEFR_A2', 'value': 242}, {'source': '高中', 'target': 'CEFR_B1', 'value': 366}, {'source': '高中', 'target': 'CEFR_B2', 'value': 543}, {'source': '高中', 'target': 'CEFR_C1', 'value': 280}, {'source': '高中', 'target': 'CEFR_C2', 'value': 32}, {'source': '高中', 'target': 'COCA_20000', 'value': 162}, {'source': '高中', 'target': 'ULTRA', 'value': 80}, {'source': '四级', 'target': 'CEFR_A1', 'value': 17}, {'source': '四级', 'target': 'CEFR_A2', 'value': 68}, {'source': '四级', 'target': 'CEFR_B1', 'value': 148}, {'source': '四级', 'target': 'CEFR_B2', 'value': 399}, {'source': '四级', 'target': 'CEFR_C1', 'value': 442}, {'source': '四级', 'target': 'CEFR_C2', 'value': 132}, {'source': '四级', 'target': 'COCA_20000', 'value': 278}, {'source': '四级', 'target': 'ULTRA', 'value': 52}, {'source': '六级', 'target': 'CEFR_A2', 'value': 6}, {'source': '六级', 'target': 'CEFR_B1', 'value': 21}, {'source': '六级', 'target': 'CEFR_B2', 'value': 106}, {'source': '六级', 'target': 'CEFR_C1', 'value': 432}, {'source': '六级', 'target': 'CEFR_C2', 'value': 153}, {'source': '六级', 'target': 'COCA_20000', 'value': 298}, {'source': '六级', 'target': 'ULTRA', 'value': 20}, {'source': '专四专八', 'target': 'CEFR_A1', 'value': 9}, {'source': '专四专八', 'target': 'CEFR_A2', 'value': 45}, {'source': '专四专八', 'target': 'CEFR_B1', 'value': 112}, {'source': '专四专八', 'target': 'CEFR_B2', 'value': 296}, {'source': '专四专八', 'target': 'CEFR_C1', 'value': 827}, {'source': '专四专八', 'target': 'CEFR_C2', 'value': 1426}, {'source': '专四专八', 'target': 'COCA_20000', 'value': 1993}, {'source': '专四专八', 'target': 'ULTRA', 'value': 1959}]}
+
+    // overview-keep
+    const graph = {'nodes': [{'name': '小学', 'count': 441}, {'name': '初中', 'count': 1480}, {'name': '高中', 'count': 1757}, {'name': '四级', 'count': 1536}, {'name': '六级', 'count': 1036}, {'name': '专四专八', 'count': 6667}, {'name': 'CEFR_A1', 'count': 861}, {'name': 'CEFR_A2', 'count': 1141}, {'name': 'CEFR_B1', 'count': 1519}, {'name': 'CEFR_B2', 'count': 2394}, {'name': 'CEFR_C1', 'count': 3185}, {'name': 'CEFR_C2', 'count': 4222}, {'name': 'COCA_20000', 'count': 17633}], 'links': [{'source': '小学', 'target': 'CEFR_A1', 'value': 365}, {'source': '小学', 'target': 'CEFR_A2', 'value': 162}, {'source': '小学', 'target': 'CEFR_B1', 'value': 132}, {'source': '小学', 'target': 'CEFR_B2', 'value': 95}, {'source': '小学', 'target': 'CEFR_C1', 'value': 56}, {'source': '小学', 'target': 'CEFR_C2', 'value': 85}, {'source': '小学', 'target': 'COCA_20000', 'value': 425}, {'source': '初中', 'target': 'CEFR_A1', 'value': 412}, {'source': '初中', 'target': 'CEFR_A2', 'value': 567}, {'source': '初中', 'target': 'CEFR_B1', 'value': 480}, {'source': '初中', 'target': 'CEFR_B2', 'value': 416}, {'source': '初中', 'target': 'CEFR_C1', 'value': 213}, {'source': '初中', 'target': 'CEFR_C2', 'value': 260}, {'source': '初中', 'target': 'COCA_20000', 'value': 1368}, {'source': '高中', 'target': 'CEFR_A1', 'value': 52}, {'source': '高中', 'target': 'CEFR_A2', 'value': 258}, {'source': '高中', 'target': 'CEFR_B1', 'value': 468}, {'source': '高中', 'target': 'CEFR_B2', 'value': 725}, {'source': '高中', 'target': 'CEFR_C1', 'value': 464}, {'source': '高中', 'target': 'CEFR_C2', 'value': 302}, {'source': '高中', 'target': 'COCA_20000', 'value': 1677}, {'source': '四级', 'target': 'CEFR_A1', 'value': 17}, {'source': '四级', 'target': 'CEFR_A2', 'value': 69}, {'source': '四级', 'target': 'CEFR_B1', 'value': 162}, {'source': '四级', 'target': 'CEFR_B2', 'value': 450}, {'source': '四级', 'target': 'CEFR_C1', 'value': 577}, {'source': '四级', 'target': 'CEFR_C2', 'value': 343}, {'source': '四级', 'target': 'COCA_20000', 'value': 1484}, {'source': '六级', 'target': 'CEFR_A2', 'value': 6}, {'source': '六级', 'target': 'CEFR_B1', 'value': 21}, {'source': '六级', 'target': 'CEFR_B2', 'value': 112}, {'source': '六级', 'target': 'CEFR_C1', 'value': 468}, {'source': '六级', 'target': 'CEFR_C2', 'value': 243}, {'source': '六级', 'target': 'COCA_20000', 'value': 1016}, {'source': '专四专八', 'target': 'CEFR_A1', 'value': 9}, {'source': '专四专八', 'target': 'CEFR_A2', 'value': 46}, {'source': '专四专八', 'target': 'CEFR_B1', 'value': 117}, {'source': '专四专八', 'target': 'CEFR_B2', 'value': 307}, {'source': '专四专八', 'target': 'CEFR_C1', 'value': 869}, {'source': '专四专八', 'target': 'CEFR_C2', 'value': 1558}, {'source': '专四专八', 'target': 'COCA_20000', 'value': 4708}]}
+
+    sankey(graph);
+
+    link.data(graph.links)
+        .enter().append("path")
+        .attr("d", d3.sankeyLinkHorizontal())
+        .attr("stroke-width", d => Math.max(1, d.width));
+
+    node.data(graph.nodes)
+        .enter().append("g")
+        .attr("transform", d => `translate(${d.x0},${d.y0})`)
+        .append("rect")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("height", d => d.y1 - d.y0)
+        .attr("width", sankey.nodeWidth())
+        .attr("fill", d => color(d.name))
+        .append("title")
+        .text(d => `${d.name}\n${format(d.value)}`);
+
+    svg.append("g")
+        .selectAll()
+        .data(graph.nodes)
+        .join("text")
+        .attr("x", d => d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
+        .attr("y", d => (d.y1 + d.y0) / 2)
+        .attr("dy", "0.35em")
+        .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")
+        // .text(d => `${d.name}(${format(d.value)})`);
+        .text(d => `${d.name}(${d.count || 0})`);
+
+    // const linkLabel = svg.append("g")
+    //     .attr("class", "link-labels")
+    //     .selectAll("text")
+    //     .data(graph.links)
+    //     .enter().append("text")
+    //     .attr("text-anchor", "middle")
+    //     .attr("dy", "0.35em")
+    //     .text(d => format(d.value));
+    //
+    // function positionLinkLabels() {
+    //     linkLabel
+    //         .attr("x", function(d) {
+    //             return d.source.x1 + 125;
+    //         })
+    //         .attr("y", function(d) {
+    //             // const sy = d.source.y0 + (d.source.y1 - d.source.y0) / 2;
+    //             // const ty = d.target.y0 + (d.target.y1 - d.target.y0) / 2;
+    //             // return (sy + ty) / 2;
+    //             return d.y0
+    //         });
+    // }
+    //
+    // positionLinkLabels();
+
+</script>
+
+<script src="saveSvgAsPng.js">
+</script>
+<script>
+    saveSvgAsPng(document.getElementById("sankey"), "diagram.png", {backgroundColor: 'white'});
+</script>
+</body>
+</html>
